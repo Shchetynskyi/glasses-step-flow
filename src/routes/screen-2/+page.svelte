@@ -5,12 +5,12 @@
 
   const handleClick = (value: string) => {
     if (value === 'plus') {
-      goto('/next-plus');
+      goto('/plus');
       return;
     }
 
     if (value === 'minus') {
-      goto('/next-minus');
+      goto('/minus');
       return;
     }
 
