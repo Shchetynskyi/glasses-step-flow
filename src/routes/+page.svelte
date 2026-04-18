@@ -4,7 +4,7 @@
   import { goto } from '$app/navigation';
 
   const handleClick = () => {
-    goto('/step-1');
+    goto('screen-2');
   };
 </script>
 

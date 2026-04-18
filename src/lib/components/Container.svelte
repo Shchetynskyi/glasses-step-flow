@@ -16,8 +16,11 @@
 
 <style lang="scss">
 .container {
+  min-height: 100vh;
   max-width: 420px;
   margin: 0 auto;
   padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
 }
 </style>
