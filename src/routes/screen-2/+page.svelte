@@ -85,9 +85,9 @@ h1 {
 }
 
 .trust {
-  font-size: 17px;
-  color: #444;
-  font-weight: 500;
+  font-size: 20px;
+  color: #333;
+  font-weight: 600;
   text-align: center;
 }
 </style>

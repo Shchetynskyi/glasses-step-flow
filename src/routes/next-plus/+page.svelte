@@ -1,38 +1,21 @@
 <script lang="ts">
   import { page } from '$app/stores';
+  import { goto } from '$app/navigation';
   import Container from '$lib/components/Container.svelte';
+  import SingleModelViewer from '$lib/components/SingleModelViewer.svelte';
+  import { readyPlusModels } from '$lib/mock/ready-plus-models';
+
+  const diopter = $derived($page.url.searchParams.get('diopter') ?? '');
+
+  const viewerModels = readyPlusModels;
 </script>
 
 <Container>
-  <div class="wrapper">
-    <h1>Обрана діоптрія</h1>
-    <div class="value">{$page.url.searchParams.get('diopter')}</div>
-  </div>
+  <SingleModelViewer
+    diopterLabel={diopter}
+    models={viewerModels}
+    onOrder={(model) => {
+      goto(`/order?modelId=${model.modelId}&diopter=${diopter}`);
+    }}
+  />
 </Container>
-
-<style lang="scss">
-  .wrapper {
-    min-height: calc(100vh - 48px);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-  }
-
-  h1 {
-    margin: 0;
-    font-size: 30px;
-    line-height: 1.2;
-    font-weight: 700;
-    color: #222;
-  }
-
-  .value {
-    font-size: 42px;
-    line-height: 1.1;
-    font-weight: 800;
-    color: #7a4b2f;
-  }
-</style>
