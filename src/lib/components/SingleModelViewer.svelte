@@ -18,6 +18,13 @@
   const currentModel = $derived(props.models[currentIndex] ?? null);
   const canGoBack = $derived(history.length > 0);
 
+  $effect(() => {
+    if (currentIndex >= props.models.length) {
+      currentIndex = 0;
+      history = [];
+    }
+  });
+
   function handleNext() {
     if (props.models.length === 0) return;
 
@@ -43,19 +50,14 @@
   }
 </script>
 
-{#if !currentModel}
-  <section class="single-model-viewer">
-    <p class="diopter-text">
-      Це готові окуляри з
-      <span class="diopter-value">{props.diopterLabel}</span>
-    </p>
-
-    <p class="empty">Немає моделей</p>
-  </section>
-{:else}
-  <section class="single-model-viewer">
+<section class="single-model-viewer">
+  {#if currentModel}
     {#if canGoBack}
-      <button type="button" class="back-button" onclick={handleBack}>
+      <button
+        type="button"
+        class="back-button"
+        onclick={handleBack}
+      >
         ← Назад
       </button>
     {/if}
@@ -95,8 +97,17 @@
     >
       Показати іншу модель
     </button>
-  </section>
-{/if}
+  {:else}
+    <p class="diopter-text">
+      Це готові окуляри з
+      <span class="diopter-value">{props.diopterLabel}</span>
+    </p>
+
+    <p class="empty">
+      Моделі для цієї діоптрії не знайдено
+    </p>
+  {/if}
+</section>
 
 <style>
   .single-model-viewer {
