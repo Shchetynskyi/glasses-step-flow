@@ -14,6 +14,7 @@
 
   let currentIndex = $state(0);
   let history = $state<number[]>([]);
+  let isImageOpen = $state(false);
 
   const currentModel = $derived(props.models[currentIndex] ?? null);
   const canGoBack = $derived(history.length > 0);
@@ -48,16 +49,29 @@
     if (!currentModel) return;
     props.onOrder(currentModel);
   }
+
+  function openImage() {
+    if (!currentModel?.imageUrl) return;
+    isImageOpen = true;
+  }
+
+  function closeImage() {
+    isImageOpen = false;
+  }
+
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape' && isImageOpen) {
+      closeImage();
+    }
+  }
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <section class="single-model-viewer">
   {#if currentModel}
     {#if canGoBack}
-      <button
-        type="button"
-        class="back-button"
-        onclick={handleBack}
-      >
+      <button type="button" class="back-button" onclick={handleBack}>
         ← Назад
       </button>
     {/if}
@@ -67,34 +81,29 @@
       <span class="diopter-value">{props.diopterLabel}</span>
     </p>
 
-    <img
-      class="model-image"
-      src={currentModel.imageUrl}
-      alt={currentModel.marketingTitle}
-      loading="eager"
-    />
-
-    <h1 class="model-title">
-      {currentModel.marketingTitle}
-    </h1>
-
-    <p class="model-price">
-      {currentModel.sitePriceUAH}
-    </p>
-
     <button
       type="button"
-      class="primary-button"
-      onclick={handleOrder}
+      class="image-button"
+      onclick={openImage}
+      aria-label="Збільшити фото окулярів"
     >
+      <img
+        class="model-image"
+        src={currentModel.imageUrl}
+        alt={currentModel.marketingTitle}
+        loading="eager"
+      />
+    </button>
+
+    <h1 class="model-title">{currentModel.marketingTitle}</h1>
+
+    <p class="model-price">{currentModel.sitePriceUAH}</p>
+
+    <button type="button" class="primary-button" onclick={handleOrder}>
       Замовити ці окуляри
     </button>
 
-    <button
-      type="button"
-      class="secondary-button"
-      onclick={handleNext}
-    >
+    <button type="button" class="secondary-button" onclick={handleNext}>
       Показати іншу модель
     </button>
   {:else}
@@ -103,9 +112,35 @@
       <span class="diopter-value">{props.diopterLabel}</span>
     </p>
 
-    <p class="empty">
-      Моделі для цієї діоптрії не знайдено
-    </p>
+    <p class="empty">Моделі для цієї діоптрії не знайдено</p>
+  {/if}
+
+  {#if isImageOpen && currentModel}
+    <div class="lightbox" role="dialog" aria-modal="true" aria-label="Збільшене фото">
+      <button
+        type="button"
+        class="lightbox-backdrop"
+        onclick={closeImage}
+        aria-label="Закрити"
+      ></button>
+
+      <button
+        type="button"
+        class="lightbox-close"
+        onclick={closeImage}
+        aria-label="Закрити"
+      >
+        ×
+      </button>
+
+      <div class="lightbox-viewport" aria-label="Перегляд фото">
+        <img
+          class="lightbox-image"
+          src={currentModel.imageUrl}
+          alt={currentModel.marketingTitle}
+        />
+      </div>
+    </div>
   {/if}
 </section>
 
@@ -155,12 +190,21 @@
     white-space: nowrap;
   }
 
+  .image-button {
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+  }
+
   .model-image {
     width: 100%;
-    max-height: 38vh;
+    height: auto;
+    max-height: none;
     border-radius: 16px;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
+    cursor: zoom-in;
   }
 
   .model-title {
@@ -209,5 +253,69 @@
     text-align: center;
     color: #666;
     font-size: 18px;
+  }
+
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+  }
+
+  .lightbox-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    border: 0;
+    padding: 0;
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    border: 0;
+    background: rgba(255, 255, 255, 0.92);
+    color: #111;
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  .lightbox-viewport {
+    position: absolute;
+    inset: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    display: grid;
+    place-items: center;
+    padding: 12px;
+  }
+
+  .lightbox-image {
+    width: min(2200px, 260vw);
+    max-width: none;
+    height: auto;
+    display: block;
+    border-radius: 14px;
+    background: #fff;
+    touch-action: pan-x pan-y;
+  }
+
+  @media (max-width: 420px) {
+    .lightbox-image {
+      width: 260vw;
+      border-radius: 10px;
+    }
+  }
+
+  @media (min-width: 560px) {
+    .lightbox-image {
+      width: min(1400px, 160vw);
+    }
   }
 </style>
