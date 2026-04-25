@@ -1,7 +1,14 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { onMount } from 'svelte';
+
   import Container from '$lib/components/Container.svelte';
   import OptionCard from '$lib/components/OptionCard.svelte';
+  import { loadCatalog } from '$lib/data/catalog';
+
+  onMount(() => {
+    loadCatalog().catch(() => {});
+  });
 
   const handleClick = (value: string) => {
     if (value === 'plus') {

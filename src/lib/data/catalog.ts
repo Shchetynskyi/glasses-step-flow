@@ -18,6 +18,10 @@ type CsvRow = Record<string, string>;
 const CSV_URL =
   'https://docs.google.com/spreadsheets/d/e/2PACX-1vRY7VLZvFgVUk1AslbRRmEtmhIVHFPK5jApKT4GjpQuLN-eJ45_fs3r2v8UXisxYdVsXYXl_wsEwoo9/pub?gid=51481216&single=true&output=csv';
 
+// 🔴 кеш
+let catalogCache: RawCatalogRow[] | null = null;
+let catalogPromise: Promise<RawCatalogRow[]> | null = null;
+
 function toStringSafe(value: unknown): string {
   return typeof value === 'string' ? value : value == null ? '' : String(value);
 }
@@ -72,52 +76,67 @@ function normalizePrice(value: unknown): string {
 }
 
 export async function loadCatalog(): Promise<RawCatalogRow[]> {
-  const res = await fetch(CSV_URL);
-  const text = await res.text();
+  // 🔴 якщо вже є кеш
+  if (catalogCache) {
+    return catalogCache;
+  }
 
-  const parsed = Papa.parse<Record<string, unknown>>(text, {
-    header: true,
-    skipEmptyLines: 'greedy',
-    dynamicTyping: false,
-    transformHeader: (h) => h.trim()
-  });
+  // 🔴 якщо вже є запит — повертаємо його
+  if (catalogPromise) {
+    return catalogPromise;
+  }
 
-  const rows = (parsed.data ?? [])
-    .filter((row): row is Record<string, unknown> => !!row && typeof row === 'object')
-    .map((row) => {
-      const out: CsvRow = {};
-      for (const [key, value] of Object.entries(row)) {
-        out[key] = toStringSafe(value);
-      }
-      return out;
+  catalogPromise = (async () => {
+    const res = await fetch(CSV_URL);
+    const text = await res.text();
+
+    const parsed = Papa.parse<Record<string, unknown>>(text, {
+      header: true,
+      skipEmptyLines: 'greedy',
+      dynamicTyping: false,
+      transformHeader: (h) => h.trim()
     });
 
-  return rows
-    .filter((row) => toBoolean(row['Показувати']))
-    .map((row) => {
-      const modelId = row['ModelID']?.trim() ?? '';
-      const mainImageUrl = normalizeImageUrl(row['Фото (URL)']);
-      const previewImageUrl = normalizeImageUrl(row['Прев’ю']);
+    const rows = (parsed.data ?? [])
+      .filter((row): row is Record<string, unknown> => !!row && typeof row === 'object')
+      .map((row) => {
+        const out: CsvRow = {};
+        for (const [key, value] of Object.entries(row)) {
+          out[key] = toStringSafe(value);
+        }
+        return out;
+      });
 
-      return {
-        modelId,
-        MarketingTitle:
-          (row['Маркетингова назва'] ?? '').trim() ||
-          (row['Артикул'] ?? '').trim() ||
+    const result = rows
+      .filter((row) => toBoolean(row['Показувати']))
+      .map((row) => {
+        const modelId = row['ModelID']?.trim() ?? '';
+        const mainImageUrl = normalizeImageUrl(row['Фото (URL)']);
+        const previewImageUrl = normalizeImageUrl(row['Прев’ю']);
+
+        return {
           modelId,
-        Gender: (row['Стать'] ?? '').trim(),
-        Show: (row['Показувати'] ?? '').trim(),
-        Priority: toNumberOrNull(row['Пріоритет']),
+          MarketingTitle:
+            (row['Маркетингова назва'] ?? '').trim() ||
+            (row['Артикул'] ?? '').trim() ||
+            modelId,
+          Gender: (row['Стать'] ?? '').trim(),
+          Show: (row['Показувати'] ?? '').trim(),
+          Priority: toNumberOrNull(row['Пріоритет']),
 
-        PreviewImageUrl: previewImageUrl,
-        MainImageUrl: mainImageUrl,
+          PreviewImageUrl: previewImageUrl,
+          MainImageUrl: mainImageUrl,
+          ImageUrl: mainImageUrl,
 
-        // backward-compatible: старий код поки може читати ImageUrl
-        ImageUrl: mainImageUrl,
+          DiopterValues: (row['DiopterValues'] ?? '').trim(),
+          SitePriceUAH: normalizePrice(row['SitePriceUAH'])
+        };
+      })
+      .filter((row) => row.modelId);
 
-        DiopterValues: (row['DiopterValues'] ?? '').trim(),
-        SitePriceUAH: normalizePrice(row['SitePriceUAH'])
-      };
-    })
-    .filter((row) => row.modelId);
+    catalogCache = result;
+    return result;
+  })();
+
+  return catalogPromise;
 }
