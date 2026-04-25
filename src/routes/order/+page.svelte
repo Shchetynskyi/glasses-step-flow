@@ -1,54 +1,71 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
   import { page } from '$app/stores';
+  import { onMount } from 'svelte';
+
   import Container from '$lib/components/Container.svelte';
   import PrimaryButton from '$lib/components/PrimaryButton.svelte';
+  import { loadCatalog, type RawCatalogRow } from '$lib/data/catalog';
 
-  import { readyPlusModels } from '$lib/mock/ready-plus-models';
-  import { readyMinusModels } from '$lib/mock/ready-minus-models';
+  let allModels = $state<RawCatalogRow[]>([]);
+  let isLoading = $state(true);
 
   const modelId = $derived($page.url.searchParams.get('modelId') ?? '');
-  const diopter = $derived($page.url.searchParams.get('diopter') ?? '');
+  const diopterRaw = $derived($page.url.searchParams.get('diopter') ?? '');
 
-  const allModels = [...readyPlusModels, ...readyMinusModels];
+const diopter = $derived(
+  diopterRaw
+    ? (diopterRaw.startsWith('+') || diopterRaw.startsWith('-')
+        ? diopterRaw
+        : `+${diopterRaw}`)
+    : ''
+);
 
   const currentModel = $derived(
-    allModels.find((m) => m.modelId === modelId)
+    allModels.find((model) => model.modelId === modelId)
   );
 
   const orderText = $derived(
     currentModel
       ? [
-          'Добрий день.',
-          'Хочу замовити окуляри:',
+          'Хочу замовити окуляри',
           '',
-          `Модель: ${currentModel.marketingTitle}`,
-          `Артикул: ${currentModel.modelId}`,
-          `Ціна: ${currentModel.sitePriceUAH}`,
-          diopter ? `Діоптрії: ${diopter}` : '',
-          '',
-          'Підкажіть, будь ласка, щодо оформлення замовлення.'
+          `Модель: ${currentModel.MarketingTitle}`,
+          `Діоптрія: ${diopter}`,
+          `Ціна: ${currentModel.SitePriceUAH}`
         ].join('\n')
       : ''
   );
 
+  onMount(async () => {
+    allModels = await loadCatalog();
+    isLoading = false;
+  });
+
   async function handleCopy() {
+    if (!orderText) return;
+
     try {
       await navigator.clipboard.writeText(orderText);
     } catch (e) {}
 
-    window.location.href = '/order/done';
+    goto('/order/done');
   }
 </script>
 
 <Container>
   <div class="wrapper">
-    {#if !currentModel}
+    {#if isLoading}
+      <p class="instruction-text">
+        ...
+      </p>
+    {:else if !currentModel}
       <p class="instruction-text">
         Дані моделі не знайдено
       </p>
     {:else}
       <p class="title">
-        Перевірте замовлення
+        Натисніть, щоб скопіювати замовлення
       </p>
 
       <div class="card">
@@ -56,7 +73,7 @@
       </div>
 
       <PrimaryButton
-        label="Скопіювати текст"
+        label="Скопіювати замовлення"
         onClick={handleCopy}
       />
     {/if}

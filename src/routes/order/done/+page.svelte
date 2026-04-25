@@ -12,17 +12,21 @@
 <Container>
   <div class="wrapper">
     <p class="title">
-      Скопійовано!
+      Замовлення скопійовано
     </p>
 
     <p class="instruction-text">
-      Тепер відкрийте Facebook
+      Натисніть кнопку нижче.
       <br />
-      і вставте повідомлення
+      Відкриється Facebook.
+      <br /><br />
+      Там вставте скопійований текст
+      <br />
+      і надішліть його менеджеру.
     </p>
 
     <PrimaryButton
-      label="Відкрити Facebook"
+      label="Перейти у Facebook"
       onClick={goToFacebook}
     />
   </div>
