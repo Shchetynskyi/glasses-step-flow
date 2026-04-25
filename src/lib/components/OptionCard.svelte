@@ -49,18 +49,25 @@
 .content {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .title {
-  font-size: 21px;
+  font-size: 24px;
   font-weight: 700;
   color: #1f1f1f;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  text-align: left;
 }
 
 .desc {
-  font-size: 16px;
-  color: #6f6f6f;
+  font-size: 20px;
+  color: #3f3f3f;
+  font-weight: 500;
+  line-height: 1.25;
+  text-align: left;
+  max-width: 260px;
 }
 
 .arrow {
