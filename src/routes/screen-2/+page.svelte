@@ -35,17 +35,16 @@
 
     <div class="list">
       <OptionCard
-        title="Для читання (+)"
-        description="Текст, телефон"
-        onClick={() => handleClick('plus')}
-      />
+  title="Плюсові&nbsp;+"
+  description="Частіше для читання, телефон"
+  onClick={() => handleClick('plus')}
+/>
 
-      <OptionCard
-        title="Для дали (−)"
-        description="Вулиця, водіння"
-        onClick={() => handleClick('minus')}
-      />
-
+<OptionCard
+  title="Мінусові&nbsp;−"
+  description="Постійне носіння, вулиця"
+  onClick={() => handleClick('minus')}
+/>
       <OptionCard
         title="За рецептом"
         description="Зробимо під вас"
