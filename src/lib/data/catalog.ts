@@ -5,6 +5,8 @@ export type RawCatalogRow = {
   MarketingTitle: string;
   SitePriceUAH: string;
   ImageUrl: string;
+  MainImageUrl: string;
+  PreviewImageUrl: string;
   Show: string;
   Gender: string;
   DiopterValues: string;
@@ -94,6 +96,8 @@ export async function loadCatalog(): Promise<RawCatalogRow[]> {
     .filter((row) => toBoolean(row['Показувати']))
     .map((row) => {
       const modelId = row['ModelID']?.trim() ?? '';
+      const mainImageUrl = normalizeImageUrl(row['Фото (URL)']);
+      const previewImageUrl = normalizeImageUrl(row['Прев’ю']);
 
       return {
         modelId,
@@ -104,7 +108,13 @@ export async function loadCatalog(): Promise<RawCatalogRow[]> {
         Gender: (row['Стать'] ?? '').trim(),
         Show: (row['Показувати'] ?? '').trim(),
         Priority: toNumberOrNull(row['Пріоритет']),
-        ImageUrl: normalizeImageUrl(row['Фото (URL)']),
+
+        PreviewImageUrl: previewImageUrl,
+        MainImageUrl: mainImageUrl,
+
+        // backward-compatible: старий код поки може читати ImageUrl
+        ImageUrl: mainImageUrl,
+
         DiopterValues: (row['DiopterValues'] ?? '').trim(),
         SitePriceUAH: normalizePrice(row['SitePriceUAH'])
       };

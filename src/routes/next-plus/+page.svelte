@@ -22,7 +22,7 @@
         modelId: r.modelId,
         marketingTitle: r.MarketingTitle,
         sitePriceUAH: r.SitePriceUAH,
-        imageUrl: r.ImageUrl,
+        imageUrl: r.MainImageUrl || r.ImageUrl,
         show: r.Show,
         gender: r.Gender,
         diopterValues: r.DiopterValues,
