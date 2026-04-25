@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { onMount } from 'svelte';
 
@@ -9,17 +8,20 @@
 
   let allModels = $state<RawCatalogRow[]>([]);
   let isLoading = $state(true);
+  let copied = $state(false);
+
+  const facebookUrl = 'https://m.me/110514481874624';
 
   const modelId = $derived($page.url.searchParams.get('modelId') ?? '');
   const diopterRaw = $derived($page.url.searchParams.get('diopter') ?? '');
 
-const diopter = $derived(
-  diopterRaw
-    ? (diopterRaw.startsWith('+') || diopterRaw.startsWith('-')
+  const diopter = $derived(
+    diopterRaw
+      ? diopterRaw.startsWith('+') || diopterRaw.startsWith('-')
         ? diopterRaw
-        : `+${diopterRaw}`)
-    : ''
-);
+        : `+${diopterRaw}`
+      : ''
+  );
 
   const currentModel = $derived(
     allModels.find((model) => model.modelId === modelId)
@@ -43,13 +45,31 @@ const diopter = $derived(
   });
 
   async function handleCopy() {
-    if (!orderText) return;
+  if (!orderText) return;
 
-    try {
-      await navigator.clipboard.writeText(orderText);
-    } catch (e) {}
+  try {
+    await navigator.clipboard.writeText(orderText);
+    copied = true;
+  } catch {
+    const textarea = document.createElement('textarea');
+    textarea.value = orderText;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    textarea.style.top = '0';
 
-    goto('/order/done');
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+
+    copied = true;
+  }
+}
+
+  function goToFacebook() {
+    window.location.href = facebookUrl;
   }
 </script>
 
@@ -63,6 +83,21 @@ const diopter = $derived(
       <p class="instruction-text">
         Дані моделі не знайдено
       </p>
+    {:else if copied}
+      <p class="title">
+        Скопійовано
+      </p>
+
+      <p class="instruction-text">
+        Тепер перейдіть у Facebook
+        <br />
+        і вставте замовлення менеджеру
+      </p>
+
+      <PrimaryButton
+        label="Перейти у Facebook"
+        onClick={goToFacebook}
+      />
     {:else}
       <p class="title">
         Натисніть, щоб скопіювати замовлення
@@ -110,8 +145,10 @@ pre {
 }
 
 .instruction-text {
+  margin: 0;
   text-align: center;
   font-size: 20px;
   font-weight: 600;
+  line-height: 1.35;
 }
 </style>
