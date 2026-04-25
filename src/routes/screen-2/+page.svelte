@@ -22,8 +22,8 @@
     }
 
     if (value === 'custom') {
-      goto('/next-custom');
-    }
+  goto('/prescription');
+}
   };
 </script>
 
