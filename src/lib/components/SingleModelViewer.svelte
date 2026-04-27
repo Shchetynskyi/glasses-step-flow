@@ -9,8 +9,7 @@
   const props = $props<{
     diopterLabel: string;
     models: ViewerModel[];
-    onOrder: (model: ViewerModel) => void;
-  }>();
+      }>();
 
   let currentIndex = $state(0);
   let history = $state<number[]>([]);
@@ -45,11 +44,7 @@
     currentIndex = previousIndex;
   }
 
-  function handleOrder() {
-    if (!currentModel) return;
-    props.onOrder(currentModel);
-  }
-
+  
   function openImage() {
     if (!currentModel?.imageUrl) return;
     isImageOpen = true;
@@ -95,13 +90,19 @@
       />
     </button>
 
-    <h1 class="model-title">{currentModel.marketingTitle}</h1>
-
+    <h1 class="model-title">
+  Модель {currentModel.modelId.split('-')[1]}
+</h1>
     <p class="model-price">{currentModel.sitePriceUAH}</p>
 
-    <button type="button" class="primary-button" onclick={handleOrder}>
-      Замовити ці окуляри
-    </button>
+    <button
+  type="button"
+  class="primary-button"
+  onclick={() => window.location.href = 'https://m.me/110514481874624'}
+>
+  Написати менеджеру для оформлення
+</button>
+
 
     <button type="button" class="secondary-button" onclick={handleNext}>
       Показати іншу модель
@@ -216,12 +217,12 @@
   }
 
   .model-price {
-    margin: 0 0 4px;
-    color: #222;
-    font-size: 21px;
-    font-weight: 700;
-    line-height: 1.2;
-  }
+  margin: 8px 0 12px;
+  color: #b63a2b;
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1.2;
+}
 
   .primary-button {
     min-height: 60px;
